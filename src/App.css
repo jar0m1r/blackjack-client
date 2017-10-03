@@ -1,0 +1,55 @@
+
+.row {
+  width: 100%;
+  margin: 5px 0 10px 0;
+  overflow: hidden;
+}
+
+.tables {
+  float: left;
+  width: 50%;
+}
+
+.tables-list {
+  margin: 10px 20px 10px 20px;
+}
+
+.tables-list li {
+  padding: 10px 20px;
+}
+
+.seat {
+  float: left;
+  margin: 20px;
+}
+
+.seat .actions > div {
+  border-radius: 5px;
+  color: white;
+  background-color: #222;
+  padding: 5px;
+  text-align: center;
+  width:  60%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.cards{
+  margin: 5px;
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.cards > div {
+  margin: 2px;
+  padding: 0;
+  height: 120px;
+}
+
+.card {
+  width: 80px;
+  height: 120px;
+}
+

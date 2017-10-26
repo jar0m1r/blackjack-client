@@ -14,7 +14,7 @@ export default class TableListItem extends Component {
 
     render(){
         return(
-            <li onClick={ this.tableSelected }>{ this.props.name } { this.props.numplayers } / { this.props.maxplayers }</li>
+            <li onClick={ this.tableSelected }>{ this.props.name } { this.props.numseats }</li>
         );
     }
 }

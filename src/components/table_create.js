@@ -7,7 +7,7 @@ export default class TableCreate extends Component {
 
         this.state = {
             name: '',
-            maxplayers: 1
+            numseats: "1"
         }
 
         this.handleChange = this.handleChange.bind(this)
@@ -16,7 +16,6 @@ export default class TableCreate extends Component {
 
     handleSubmit(event){
         event.preventDefault();
-        console.log(this.state);
         this.props.onTableCreate(this.state);
     }
 
@@ -34,8 +33,8 @@ export default class TableCreate extends Component {
                         <input type="text" value={ this.state.name } id="name" name="name" onChange={ this.handleChange } placeholder="table name..." />
                     </div>
                     <div>
-                        <label htmlFor="maxplayers">number of players</label>
-                        <select value={ this.state.maxplayers } id="maxplayers" name="maxplayers" onChange={ this.handleChange }>
+                        <label htmlFor="numseats">number of seats</label>
+                        <select value={ this.state.numseats } id="numseats" name="numseats" onChange={ this.handleChange }>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>

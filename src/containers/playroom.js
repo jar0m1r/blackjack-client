@@ -13,47 +13,57 @@ export default class extends Component {
         super(props);
 
         this.state = {
-            playername: null,
-            //tables: [{ name: "blackjack1", numplayers: 2, maxplayers: 3 }, { name: "blackjack2", numplayers: 2, maxplayers: 2 }, { name: "blackjack3", numplayers: 1, maxplayers: 3 }],
+            username: null,
+            userid: null,
             tables: [],
-            wsconn: null
+            table: null,
+            wsconn: null,
+            wstable: null
         }
 
-        this.setName = this.setName.bind(this)
+        this.login = this.login.bind(this)
         this.createTable = this.createTable.bind(this)
         this.connectToPlayroom = this.connectToPlayroom.bind(this)
-    }
-
-    componentDidMount(){
-
+        this.jointable = this.jointable.bind(this)
+        this.connectToTable = this.connectToTable.bind(this)
     }
 
     createTable(table){
-        console.log("Table created to be send", table);
-        table.numplayers = 0;
-
-        if(this.state.wsconn == null){
-            console.log("no connection to send new table")
-            return
-        }
-
-        console.log("Sending new table via connection");
+        console.log("table created with seats:", table.numseats)
         const message = {
-            Messagetype : "table",
-            Payload : {
-                Name : table.name
-            }
+            name : table.name,
+            gametype: "blackjack",
+            numseats: Number(table.numseats)
         }
-        this.state.wsconn.send(JSON.stringify(message));
+
+        fetch('http://localhost:8080/api/tables/', {
+            method: 'POST',
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }),
+            body: JSON.stringify(message),
+            mode: 'cors', 
+            redirect: 'follow'
+        })
+        .then(response => {
+            return response.json()
+        })
+        .then(table => {
+            console.log("Tables has been created with id", table.id);
+        })
+        .catch(err => {
+            console.log("Error receiving POST response", err);
+        });  
+
     }
 
-    setName(name){
-        console.log("name:", name)
-        this.setState({ playername: name });
+    login(name){
+
         const loginmessage = {
-            Name: name
+            name: name
         }
-        fetch('http://localhost:8080/api/login', {
+        fetch('http://localhost:8080/api/users/', {
             method: 'POST',
             headers: new Headers({
                 'Content-Type': 'application/json',
@@ -64,27 +74,28 @@ export default class extends Component {
             redirect: 'follow'
         })
         .then(response => {
-            return response.json();
+            return response.json()
         })
-        .then(data => {
-            console.log("Response to POST is", data);
+        .then(user => {
+            this.setState({ username: user.name, userid: user.id });
+            this.connectToPlayroom(); //TODO make this detached from the login function, better based on state (?)
         })
-         .catch(err => {
-            console.log("Error receiving POST response", err);
+        .catch(err => {
+            console.log("Error loggin in", err);
         });        
 
     }
 
     connectToPlayroom(){
         console.log("Name set and opening connection..");
-        const ws = new WebSocket("ws://localhost:8080/websocket");
+        const ws = new WebSocket("ws://localhost:8080/ws/");
         this.setState({ wsconn: ws })
         
         ws.onopen = () => {
             const message = {
-                Messagetype : "person",
-                Payload : {
-                    Name : this.state.playername
+                messagetype : "person",
+                payload : {
+                    id : this.state.userid
                 }
             }
             ws.send(JSON.stringify(message));
@@ -92,14 +103,69 @@ export default class extends Component {
 
         ws.onmessage = (evt) => {
             let message = JSON.parse(evt.data);
+            console.log("Message", message);
+/*             console.log("Message type", message.messagetype);
+            console.log("Message payload", message.payload); */
+            this.setState( { tables: message })
 
-            console.log("Message type", message.Messagetype);
-            console.log("Message payload", message.Payload);
-
-            if(message.Messagetype === "tables"){
+            if(message.messagetype === "tables"){
                 //const tables = [...this.state.tables, table];
-                this.setState( { tables: message.Payload })
+                this.setState( { tables: message.payload })
             }
+        };
+
+        ws.onclose = () => {
+            console.log("Connection closed");
+        };
+    }
+
+    jointable(tableId){
+        console.log("Joining table", tableId)
+        const joinmessage = {
+            id: this.state.userid
+        }
+        fetch(`http://localhost:8080/api/tables/${ tableId }/join`, {
+            method: 'POST',
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }),
+            body: JSON.stringify(joinmessage),
+            mode: 'cors', 
+            redirect: 'follow'
+        })
+        .then(response => {
+            return response.json()
+        })
+        .then(table => {
+            console.log("Succesfully joined table:", table);
+            this.setState({ table: table });
+            this.connectToTable() // possible async issues here due to setState function
+        })
+        .catch(err => {
+            console.log("Error joining table", err);
+        });    
+    }
+
+    connectToTable(){
+        console.log("Joined table and opening connection..");
+        const ws = new WebSocket(`ws://localhost:8080/ws/${ this.state.table.id }`);
+        this.setState({ wstable: ws })
+        
+        ws.onopen = () => {
+            const message = {
+                messagetype : "person", //stupid. Change this to dedicated message type
+                payload : {
+                    id : this.state.userid
+                }
+            }
+            ws.send(JSON.stringify(message));
+        };
+
+        ws.onmessage = (evt) => {
+            let message = JSON.parse(evt.data);
+            console.log("Table message", message);
+            this.setState( { table: message })
         };
 
         ws.onclose = () => {
@@ -111,15 +177,19 @@ export default class extends Component {
         return (
             <div>
                 <div className="row"> 
-                    <Player playername={ this.state.playername } onSubmitName={ this.setName }/>
+                    <Player username={ this.state.username } onSubmit={ this.login }/>
                 </div>
+
                 <div className="row"> 
-                    <TableList tables={ this.state.tables } /> 
+                    <TableList tables={ this.state.tables } onSelect={ this.jointable } /> 
                     <TableCreate onTableCreate={ this.createTable }/>
                 </div>
-                <div className="row"> 
-                    <Table name="table1" players={ this.state.players } />
-                </div>
+
+                { this.state.table &&
+                    <div className="row"> 
+                        <Table table={ this.state.table } />
+                    </div>
+                }
             </div>
         );
     }

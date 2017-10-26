@@ -7,23 +7,25 @@ export default class TableList extends Component {
     constructor(props){
         super(props);
 
-        this.renderTableListItems = this.renderTableListItems.bind(this)
+        this.renderTableListItems = this.renderTableListItems.bind(this);
+        this.tableSelected = this.tableSelected.bind(this);
     }
 
-    tableSelected(name){
+    tableSelected(id){
         return () => {
-            console.log("table selected:", name);
+            console.log("table selected:", id);
+            this.props.onSelect(id);
         };
     }
 
     renderTableListItems(){
         return this.props.tables.map(table => {
+            console.log("table list item created with id", table.id)
             return <TableListItem 
-                key={ `key${table.Name}` } 
-                name={ table.Name } 
-                maxplayers={ table.maxplayers || 0 }
-                numplayers={ table.numplayers || 0 }
-                onSelect={ this.tableSelected(table.Name) }/>
+                key={ `key${table.id}` } 
+                name={ table.name } 
+                numseats={ table.numseats || 0 }
+                onSelect={ this.tableSelected(table.id) }/>
         });
     }
 

@@ -6,7 +6,7 @@ export default class Player extends Component {
         super(props);
 
         this.state = {
-            name: props.playername || ""
+            name: props.username || ""
         }
 
         this.formSubmit = this.formSubmit.bind(this)
@@ -14,7 +14,7 @@ export default class Player extends Component {
     }
 
     formSubmit(event){
-        this.props.onSubmitName(this.state.name);
+        this.props.onSubmit(this.state.name);
         event.preventDefault();
     }
 
@@ -25,8 +25,8 @@ export default class Player extends Component {
     render(){
         return (
             <div>
-            { this.props.playername ? 
-                <span>Welcome { this.props.playername }</span>
+            { this.props.username ? 
+                <span>Welcome { this.props.username }</span>
                 :
                 <form onSubmit={ this.formSubmit }>
                     <div>

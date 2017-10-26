@@ -17,18 +17,23 @@ export default class Seat extends Component {
     }
 
     render(){
-        console.log("player in seat", this.props.player.name);
-        return (
-            <div className="seat">
-                <h3>{ this.props.player.name }</h3>
-                <div className="cards">
-                { this.renderCards() }
+        return (this.props.player
+                ? <div className="seat">
+                    <h3>{ this.props.player.name }</h3>
+                    <div className="cards">
+                    { this.renderCards() }
+                    </div>
+                    <div className="actions">
+                        <div>Hit</div>
+                        <div>Stand</div>
+                    </div>
                 </div>
-                <div className="actions">
-                    <div>Hit</div>
-                    <div>Stand</div>
+                : <div className="seat">
+                    <h3>Empty Seat</h3>
+                    <div className="actions">
+                        <div>Sit here</div>
+                    </div>
                 </div>
-            </div>
-        );
+            )
     }
 }
